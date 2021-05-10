@@ -51,19 +51,6 @@ typedef struct {
     double elapsed_time;                                                                /* Difference between ending_time and starting_time. */
 } Es_Profiler;
 
-/* Es_application.c */
-
-typedef struct {
-    timespec delta_time;                                                                /* Time spent since last frame (in ms). */
-    timespec time;                                                                      /* Time spent since the beginning of the program (in ms). */
-} Es_Time;
-
-typedef struct {
-	char* window_title;
-	uint16_t width, height;
-	GLFWwindow* main_window;
-	Es_Time time;
-} Es_Application;
 
 /* Es_events.c */
 
@@ -120,8 +107,9 @@ typedef enum Es_Layer_Type {                                                    
 } Es_Layer_Type;
 
 typedef struct {
-    Es_Layer_Type layer_type;                                                           /* Type of the layer. */
     Es_Event_Listener_Array* listener_array;                                            /* Array of listeners. */
+    char* layer_name;
+    Es_Layer_Type layer_type;                                                           /* Type of the layer. */
 } Es_Layer;
 
 typedef struct {
@@ -132,6 +120,21 @@ typedef struct {
     int current_size;                                                                   /* Current size of the array. */
     Es_Layer** array;                                                                   /* Array that stores all the layers in an application. */
 } Es_Layer_Stack;
+
+/* Es_application.c */
+
+typedef struct {
+    timespec delta_time;                                                                /* Time spent since last frame (in ms). */
+    timespec time;                                                                      /* Time spent since the beginning of the program (in ms). */
+} Es_Time;
+
+typedef struct {
+	char* window_title;
+	Es_Layer_Stack* layer_stack;
+	GLFWwindow* main_window;
+	Es_Time time;
+    uint16_t width, height;
+} Es_Application;
 
 /* ---------- ES_MATH ---------- */
 
@@ -219,7 +222,7 @@ void        es_event_listener_array_destroy(Es_Event_Listener_Array* listener_ar
 
 /* ---------- ES_LAYERS ---------- */
 
-Es_Layer*           es_layer_create(Es_Layer_Type type);                                            /* Creates and returns a layer of the specified type. */
+Es_Layer*           es_layer_create(Es_Layer_Type type, char* layer_name);                                            /* Creates and returns a layer of the specified type. */
 
 Es_Layer_Stack*     es_layer_stack_create();                                                        /* Creates and returns a layer stack. */
 void                es_layer_stack_push(Es_Layer_Stack* stack, Es_Layer* layer);                 /* Adds a layer to the stack, and placing it regarding its type.*/
