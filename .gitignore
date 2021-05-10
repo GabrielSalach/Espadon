@@ -5,3 +5,4 @@ glew32.dll
 glfw3.dll
 .code-workspace
 build
+*.o
