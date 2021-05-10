@@ -17,13 +17,13 @@ Es_Application* es_application_create(char* path_to_ini) {
 	Es_Application* rtrn_application;
 	Pe_File* settings_file;
 
-	rtrn_application = malloc(sizeof &rtrn_application);
+	rtrn_application = malloc(sizeof *rtrn_application);
 
 	settings_file = pe_file_create(path_to_ini);
 	pe_file_read(settings_file);
 	rtrn_application->width = pe_value_get_as_int(settings_file, "Window", "width");
 	rtrn_application->height = pe_value_get_as_int(settings_file, "Window", "height");
-	rtrn_application->window_title = malloc(strlen(pe_value_get(settings_file, "Window", "title")) * sizeof &rtrn_application->window_title);
+	rtrn_application->window_title = malloc(strlen(pe_value_get(settings_file, "Window", "title")) * sizeof *(rtrn_application->window_title));
 	strcpy(rtrn_application->window_title, pe_value_get(settings_file, "Window", "title"));
 
 	rtrn_application->time.delta_time.tv_nsec = 0;
@@ -52,17 +52,35 @@ int es_init(Es_Application* application) {
 }
 
 void es_update(Es_Application* application) {
+	
+
+	
 	while(!glfwWindowShouldClose(application->main_window)) {
+		/* Time updating */
+		timespec now;
+		clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &now);
+		application->time.delta_time = es_time_diff(application->time.time, now);
+		application->time.time = now;
+		/* Event processing */
+
+		/* Game update */
+
+		/* Rendering */
 		glClear(GL_COLOR_BUFFER_BIT);
-
-        /* Swap front and back buffers */
         glfwSwapBuffers(application->main_window);
-
-        /* Poll for and process events */
         glfwPollEvents();
 	}
 }
 
 void es_exit(Es_Application* application) {
 	glfwTerminate();
+	free(application->window_title);
+	application->window_title = NULL;
+	free(application->main_window);
+	application->main_window = NULL;
+	free(application);
+}
+
+double es_delta_time(Es_Application* application) {
+    return (double) application->time.delta_time.tv_sec + (double) application->time.delta_time.tv_nsec / ES_NANOSEC;
 }

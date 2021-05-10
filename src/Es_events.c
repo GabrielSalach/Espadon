@@ -54,36 +54,36 @@ void es_event_bus_add(Es_Event_Bus* bus, Es_Event* event) {
     }
 }
 
-/* Handlers */
-Es_Event_Handler* es_event_handler_create(Es_Event_Type type) {
-    Es_Event_Handler* rtrn_handler;
-    rtrn_handler = malloc(sizeof *rtrn_handler);
-    rtrn_handler->type = type;
-    rtrn_handler->event = NULL;
-    return rtrn_handler;
+/* Listeners */
+Es_Event_Listener* es_event_listener_create(Es_Event_Type type) {
+    Es_Event_Listener* rtrn_listener;
+    rtrn_listener = malloc(sizeof *rtrn_listener);
+    rtrn_listener->type = type;
+    rtrn_listener->event = NULL;
+    return rtrn_listener;
 }
 
 
-Es_Event_Handler_Array* es_event_handler_array_create() {
-    Es_Event_Handler_Array* rtrn_array;
+Es_Event_Listener_Array* es_event_listener_array_create() {
+    Es_Event_Listener_Array* rtrn_array;
     rtrn_array = malloc(sizeof *rtrn_array);
     rtrn_array->array = malloc(ES_MAX_HANDLER_ARRAY_SIZE * sizeof *(rtrn_array->array));
-    rtrn_array->handler_count = 0;
+    rtrn_array->listener_count = 0;
     return rtrn_array;
 }
 
-void es_event_handler_array_add(Es_Event_Handler_Array* array, Es_Event_Handler* handler) {
-    if(array->handler_count < ES_MAX_HANDLER_ARRAY_SIZE) {
-        array->array[array->handler_count] = handler;
-        array->handler_count++;
+void es_event_listener_array_add(Es_Event_Listener_Array* array, Es_Event_Listener* listener) {
+    if(array->listener_count < ES_MAX_HANDLER_ARRAY_SIZE) {
+        array->array[array->listener_count] = listener;
+        array->listener_count++;
     } else {
-        ES_ERROR("The handler array has reached its max size !\n");
+        ES_ERROR("The listener array has reached its max size !\n");
     }
 }
 
-void es_event_handler_array_clear(Es_Event_Handler_Array* array) {
+void es_event_listener_array_clear(Es_Event_Listener_Array* array) {
     uint16_t i;
-    for(i = 0; i < array->handler_count; i++) {
+    for(i = 0; i < array->listener_count; i++) {
         if(array->array[i]->event != NULL) {
             es_event_destroy(array->array[i]->event);
             array->array[i]->event = NULL;
@@ -92,20 +92,20 @@ void es_event_handler_array_clear(Es_Event_Handler_Array* array) {
 }
 
 /* Process */
-void es_event_process(Es_Event_Bus* bus, Es_Event_Handler_Array* handler_array) {
+void es_event_process(Es_Event_Bus* bus, Es_Event_Listener_Array* listener_array) {
     Es_Event_Type type;
     uint16_t i;
 
     if(bus->event_count == 0) {
         ES_LOG("There isn't any event to process.\n");
     } else {
-        if(handler_array->handler_count == 0) {
+        if(listener_array->listener_count == 0) {
             ES_LOG("There isn't any listeners available.\n");
         } else {
             type = bus->bus[0]->type;
-            for(i = 0; i < handler_array->handler_count; i++) {
-                if(type == handler_array->array[i]->type) {
-                    handler_array->array[i]->event = bus->bus[0];
+            for(i = 0; i < listener_array->listener_count; i++) {
+                if(type == listener_array->array[i]->type) {
+                    listener_array->array[i]->event = bus->bus[0];
                 }
             }
             bus->event_count--;
@@ -133,19 +133,19 @@ void es_event_bus_destroy(Es_Event_Bus* event_bus) {
     free(event_bus);
 }
 
-void es_event_handler_destroy(Es_Event_Handler* handler) {
-    if(handler->event != NULL) {
-        es_event_destroy(handler->event);
-        handler->event = NULL;
+void es_event_listener_destroy(Es_Event_Listener* listener) {
+    if(listener->event != NULL) {
+        es_event_destroy(listener->event);
+        listener->event = NULL;
     }
-    free(handler);
+    free(listener);
 }
 
-void es_event_handler_array_destroy(Es_Event_Handler_Array* handler_array) {
+void es_event_listener_array_destroy(Es_Event_Listener_Array* listener_array) {
     unsigned int i;
-    for(i = 0; i < handler_array->handler_count; i++) {
-        es_event_handler_destroy(handler_array->array[i]);
+    for(i = 0; i < listener_array->listener_count; i++) {
+        es_event_listener_destroy(listener_array->array[i]);
     }
-    free(handler_array->array);
-    free(handler_array);
+    free(listener_array->array);
+    free(listener_array);
 }

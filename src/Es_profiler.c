@@ -3,7 +3,7 @@
 
 Es_Profiler* es_profiler_create() {
     Es_Profiler* rtrn_profiler;
-    rtrn_profiler = malloc(sizeof(Es_Profiler));
+    rtrn_profiler = malloc(sizeof *rtrn_profiler);
     return rtrn_profiler;
 }
 

@@ -27,6 +27,9 @@ typedef struct timespec timespec;                                               
 #define ES_MAX_EVENT_BUS_SIZE 8 
 #define ES_MAX_HANDLER_ARRAY_SIZE 8
 
+/* Layers */
+#define ES_DEFAULT_LAYER_STACK_SIZE 3
+
 /* ---------- STRUCTS AND ENUMS ---------- */
 /* Es_math.c */
 
@@ -64,11 +67,11 @@ typedef struct {
 
 /* Es_events.c */
 
-typedef enum {
-    NONE = 0,
-    ES_EVENT_KEYBOARD_DOWN, ES_EVENT_KEYBOARD_UP,                                                         /* Keyboard events. */
-    ES_EVENT_WINDOW_CLOSE, ES_EVENT_WINDOW_RESIZE, ES_EVENT_WINDOW_FOCUS,                                          /* Window events. */
-    ES_EVENT_MOUSE_MOVE, ES_EVENT_MOUSE_BUTTON_DOWN, ES_EVENT_MOUSE_BUTTON_UP                                      /* Mouse events. */
+typedef enum Es_Event_Type {
+    ES_EVENT_NONE = 0,
+    ES_EVENT_KEYBOARD_DOWN, ES_EVENT_KEYBOARD_UP,                                       /* Keyboard events. */
+    ES_EVENT_WINDOW_CLOSE, ES_EVENT_WINDOW_RESIZE, ES_EVENT_WINDOW_FOCUS,               /* Window events. */
+    ES_EVENT_MOUSE_MOVE, ES_EVENT_MOUSE_BUTTON_DOWN, ES_EVENT_MOUSE_BUTTON_UP           /* Mouse events. */
 }Es_Event_Type;
 
 typedef struct {                                                                        /* Base struct for all events. */
@@ -95,9 +98,9 @@ typedef struct {
 }Es_Event_Window;
 
 typedef struct {
-    Es_Event_Type type;                                                                 /* Type of events the handler listens to. */
+    Es_Event_Type type;                                                                 /* Type of events the listener listens to. */
     Es_Event* event;                                                                    /* Current event. */
-} Es_Event_Handler;
+} Es_Event_Listener;
 
 typedef struct {
     Es_Event** bus;                                                                     /* Stores all the events. */
@@ -105,9 +108,30 @@ typedef struct {
 } Es_Event_Bus;
 
 typedef struct {
-    Es_Event_Handler** array;                                                            /* Handler array */
-    uint16_t handler_count;                                                             /* Ammount of handlers currently stored in the array. */
-} Es_Event_Handler_Array;
+    Es_Event_Listener** array;                                                          /* Listener array */
+    uint16_t listener_count;                                                            /* Ammount of listeners currently stored in the array. */
+} Es_Event_Listener_Array;
+
+/* Es_layers.c */
+
+typedef enum Es_Layer_Type {                                                                          /* Layers types. Overlays are drawn on top. */
+    ES_LAYER_NONE = 0,
+    ES_LAYER_OVERLAY, ES_LAYER_NORMAL                                                  
+} Es_Layer_Type;
+
+typedef struct {
+    Es_Layer_Type layer_type;                                                           /* Type of the layer. */
+    Es_Event_Listener_Array* listener_array;                                            /* Array of listeners. */
+} Es_Layer;
+
+typedef struct {
+    int layer_count_total;                                                              /* Total ammount of layers in the array. */
+    uint16_t layer_count_normal;                                                        /* Ammount of normal layers. */
+    uint16_t layer_count_overlay;                                                       /* Ammount of overlay layers. */
+    int layer_overlay_start_index;                                                      /* Index of the first overlay layer. */
+    int current_size;                                                                   /* Current size of the array. */
+    Es_Layer** array;                                                                   /* Array that stores all the layers in an application. */
+} Es_Layer_Stack;
 
 /* ---------- ES_MATH ---------- */
 
@@ -175,22 +199,32 @@ Es_Event_Mouse*         es_event_mouse_move_create(double posX, double posY);   
 Es_Event_Bus*           es_event_bus_create();                                                      /* Creates an event bus. */
 void        es_event_bus_add(Es_Event_Bus* bus, Es_Event* event);                                   /* Adds the event to the event bus. */
 
-/* Handlers */
-Es_Event_Handler*       es_event_handler_create(Es_Event_Type type);                                /* Creates an event handler that listens to the event type passed as argument. */
-Es_Event_Handler_Array* es_event_handler_array_create();                                            /* Creates an event handler array. */
-void        es_event_handler_array_add(Es_Event_Handler_Array* array, Es_Event_Handler* handler);   /* Adds the handler to the handler array */
-void        es_event_handler_array_clear(Es_Event_Handler_Array* array);                            /* Removes all the events from a handler array. */
+/* Listeners */
+Es_Event_Listener*       es_event_listener_create(Es_Event_Type type);                                  /* Creates an event listener that listens to the event type passed as argument. */
+Es_Event_Listener_Array* es_event_listener_array_create();                                              /* Creates an event listener array. */
+void        es_event_listener_array_add(Es_Event_Listener_Array* array, Es_Event_Listener* listener);   /* Adds the listener to the listener array */
+void        es_event_listener_array_clear(Es_Event_Listener_Array* array);                              /* Removes all the events from a listener array. */
 
 /* Process */
-void        es_event_process(Es_Event_Bus* bus, Es_Event_Handler_Array* handler_array);             /* Processes one event from the bus and calls the right handler from the handler list. */
+void        es_event_process(Es_Event_Bus* bus, Es_Event_Listener_Array* listener_array);               /* Processes one event from the bus and calls the right listener from the listener list. */
 
-int         es_get_keyboard_down(char keycode);                                                     /* TESTING ONLY !!!!! Returns if the key associated with the keycode has been pressed. */
+int         es_get_keyboard_down(char keycode);                                                         /* TESTING ONLY !!!!! Returns if the key associated with the keycode has been pressed. */
 int         es_get_window_close();
 
 /* Destructor */
 void        es_event_destroy(Es_Event* event);
 void        es_event_bus_destroy(Es_Event_Bus* event_bus);
-void        es_event_handler_destroy(Es_Event_Handler* handler);
-void        es_event_handler_array_destroy(Es_Event_Handler_Array* handler_array);
+void        es_event_listener_destroy(Es_Event_Listener* listener);
+void        es_event_listener_array_destroy(Es_Event_Listener_Array* listener_array);
+
+/* ---------- ES_LAYERS ---------- */
+
+Es_Layer*           es_layer_create(Es_Layer_Type type);                                            /* Creates and returns a layer of the specified type. */
+
+Es_Layer_Stack*     es_layer_stack_create();                                                        /* Creates and returns a layer stack. */
+void                es_layer_stack_push(Es_Layer_Stack* stack, Es_Layer* layer);                 /* Adds a layer to the stack, and placing it regarding its type.*/
+
+void                es_layer_destroy(Es_Layer* layer);                                              /* Destroys a layer. */
+void                es_layer_stack_destroy(Es_Layer_Stack* stack);                                  /* Destroys a layer stack. */
 
 #endif
