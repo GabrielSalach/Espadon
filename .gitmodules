@@ -1,0 +1,9 @@
+[submodule "vendors/Percemaille"]
+	path = vendors/Percemaille
+	url = https://github.com/GabrielSalach/Percemaille.git
+[submodule "vendors/glfw"]
+	path = vendors/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "vendors/gl3w"]
+	path = vendors/gl3w
+	url = https://github.com/skaslev/gl3w
