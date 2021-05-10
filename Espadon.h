@@ -30,23 +30,12 @@ typedef struct timespec timespec;                                               
 /* ---------- STRUCTS AND ENUMS ---------- */
 /* Es_math.c */
 
-typedef struct {
-    uint16_t rows, columns;                                                             /* Number of rows and columns. */
-    float matrix[1];                                                                    /* Uses only one malloc(), keep matrix as the last element of Es_Matrix. */
-} Es_Matrix;
-
-typedef struct {
-    float x, y;                                                                         /* Coordinates of the vector. */
-    uint16_t i; /* turn to const l8ter */                                               /* Const used for matrix transformations. */
-} Es_Vector2;
+typedef struct Es_Matrix Es_Matrix;
+typedef struct Es_Vector2 Es_Vector2;
 
 /* Es_profiler.c */
 
-typedef struct {
-    struct timespec starting_time;                                                      /* Timestamp set when using es_profiler_start() method. */
-    struct timespec ending_time;                                                        /* Timestamp set when using es_profiler_stop() method. */
-    double elapsed_time;                                                                /* Difference between ending_time and starting_time. */
-} Es_Profiler;
+typedef struct Es_Profiler Es_Profiler;
 
 /* Es_game.c */
 
@@ -55,58 +44,24 @@ typedef struct {
     timespec time;                                                                      /* Time spent since the beginning of the program (in ms). */
 } Es_Time;
 
-/* Es_events.c */
+typedef struct es_application es_application;
 
-typedef enum {
+
+/* Es_events.c */
+typedef enum Es_Event_Type {
     NONE = 0,
-    ES_EVENT_KEYBOARD_DOWN, ES_EVENT_KEYBOARD_UP,                                                         /* Keyboard events. */
-    ES_EVENT_WINDOW_CLOSE, ES_EVENT_WINDOW_RESIZE, ES_EVENT_WINDOW_FOCUS,                                          /* Window events. */
-    ES_EVENT_MOUSE_MOVE, ES_EVENT_MOUSE_BUTTON_DOWN, ES_EVENT_MOUSE_BUTTON_UP                                      /* Mouse events. */
+    ES_EVENT_KEYBOARD_DOWN, ES_EVENT_KEYBOARD_UP,                                       /* Keyboard events. */
+    ES_EVENT_WINDOW_CLOSE, ES_EVENT_WINDOW_RESIZE, ES_EVENT_WINDOW_FOCUS,               /* Window events. */
+    ES_EVENT_MOUSE_MOVE, ES_EVENT_MOUSE_BUTTON_DOWN, ES_EVENT_MOUSE_BUTTON_UP           /* Mouse events. */
 }Es_Event_Type;
 
-typedef struct {                                                                        /* Base struct for all events. */
-    Es_Event_Type type;                                                             
-    void* event_pointer;
-}Es_Event;
-
-typedef struct {
-    Es_Event* event;
-    char keycode; /* Replace with real keycode later */                                 /* Keycode pressed/released. */
-}Es_Event_Keyboard;
-
-typedef struct {
-    Es_Event* event;
-    char keycode;                                                                       /* Keycode pressed/released. */
-    double posX, posY;                                                                  /* X and Y positions of the mouse. */
-}Es_Event_Mouse;
-
-typedef struct {
-    Es_Event* event;
-    double posX, posY;                                                                  /* X and Y positions of the window */
-    int width, height;                                                                  /* Width and height of the window */
-    int focus;                                                                          /* Is the window the main focus, 0 = NO, 1 = YES. */
-}Es_Event_Window;
-
-typedef struct {
-    Es_Event_Type type;                                                                 /* Type of events the handler listens to. */
-    Es_Event* event;                                                                    /* Current event. */
-} Es_Event_Handler;
-
-typedef struct {
-    Es_Event** bus;                                                                     /* Stores all the events. */
-    uint16_t event_count;                                                               /* Ammount of events currently stored in the bus. */
-} Es_Event_Bus;
-
-typedef struct {
-    Es_Event_Handler** array;                                                            /* Handler array */
-    uint16_t handler_count;                                                             /* Ammount of handlers currently stored in the array. */
-} Es_Event_Handler_Array;
-
-
-
-/* ---------- GLOBAL VARIABLES ---------- */
-
-extern Es_Time es_time;                                                                 /* Global time struct. */
+typedef struct Es_Event Es_Event;
+typedef struct Es_Event_Keyboard Es_Event_Keyboard;
+typedef struct Es_Event_Mouse Es_Event_Mouse;
+typedef struct Es_Event_Window Es_Event_Window;
+typedef struct Es_Event_Handler Es_Event_Handler;
+typedef struct Es_Event_Bus Es_Event_Bus;
+typedef struct Es_Event_Handler_Array Es_Event_Handler_Array;
 
 /* ---------- ES_MATH ---------- */
 
@@ -145,9 +100,8 @@ Es_Profiler*        es_profiler_create();                                       
 void                es_profiler_start(Es_Profiler* p);                                  /* Starts the profiler and stores the starting time inside it. */
 void                es_profiler_stop(Es_Profiler* p);                                   /* Stops the profiler and stores the ending time inside it. */
 double              es_profiler_get_elapsed_time(Es_Profiler* p);                       /* Returns the elapsed time. */
-extern uint16_t     es_get_fps();                                                       /* Returns the number of frames per second. */
 
-/* ---------- ES_GAME ---------- */
+/* ---------- ES_APPLICATION ---------- */
 
 extern void         es_init();                                                          /* Needs to be run at the start of the program */
 extern void         es_update();                                                        /* Needs to be run each frame */

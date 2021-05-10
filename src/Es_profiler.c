@@ -1,4 +1,4 @@
-#include "../Espadon.h"
+#include "Es_profiler.h"
 
 Es_Profiler* es_profiler_create() {
     Es_Profiler* rtrn_profiler;
@@ -19,8 +19,4 @@ double es_profiler_get_elapsed_time(Es_Profiler* p) {
     temp = es_time_diff(p->starting_time, p->ending_time);
     p->elapsed_time = (double) temp.tv_sec + (double) temp.tv_nsec/ES_NANOSEC;                           
     return p->elapsed_time;
-}
-
-uint16_t es_get_fps() {
-    return (uint16_t) 1/es_delta_time();
 }
