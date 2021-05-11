@@ -92,14 +92,19 @@ void es_event_listener_array_clear(Es_Event_Listener_Array* array) {
 }
 
 /* Process */
-void es_event_process(Es_Event_Bus* bus, Es_Event_Listener_Array* listener_array) {
+void es_event_process(Es_Application* application) {
     Es_Event_Type type;
-    uint16_t i;
+    Es_Event_Listener_Array* current_listener_array;
+    char message[64];
+    int i;
 
-    if(bus->event_count == 0) {
+    for(i = 0; i < 64; i++) 
+        message[i] = 0;
+
+    if(application->event_bus->event_count == 0) {
         ES_LOG("There isn't any event to process.\n");
     } else {
-        if(listener_array->listener_count == 0) {
+        /* if(listener_array->listener_count == 0) {
             ES_LOG("There isn't any listeners available.\n");
         } else {
             type = bus->bus[0]->type;
@@ -111,6 +116,17 @@ void es_event_process(Es_Event_Bus* bus, Es_Event_Listener_Array* listener_array
             bus->event_count--;
             for(i = 0; i < bus->event_count; i++) {
                 bus->bus[i] = bus->bus[i+1];
+            }
+        } */
+        for(i = application->layer_stack->layer_count_total - 1; i >= 0; i--) {
+            current_listener_array = application->layer_stack->array[i]->listener_array;
+            if(current_listener_array->listener_count == 0) {
+                sprintf(message, "The layer '%s' doesn't have any listeners", application->layer_stack->array[i]->layer_name);
+                ES_LOG(message);
+                for(i = 0; i < 64; i++) 
+                    message[i] = 0;
+            } else {
+                
             }
         }
     }

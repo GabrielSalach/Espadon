@@ -12,9 +12,12 @@
 
 /* ---------- MACROS ---------- */
 /* Logging  */
-#define ES_DEBUG 0
-#define ES_ERROR(x)     if(ES_DEBUG) fprintf(stderr, x)
-#define ES_LOG(x)       if(ES_DEBUG) fprintf(stdout, x)
+#define ES_PRINT_LOG 0
+#define ES_PRINT_WARNINGS 0
+#define ES_PRINT_ERRORS 0
+#define ES_LOG(x)       if(ES_PRINT_LOG) fprintf(stdout, x)
+#define ES_WARNING(x)   if(ES_PRINT_WARNINGS) fprintf(stderr, "Warning : %s", x)
+#define ES_ERROR(x)     if(ES_PRINT_ERRORS) fprintf(stderr, "Error : %s", x)
 
 /* Maths */
 #define ES_PI acos(-1.0)
@@ -110,6 +113,7 @@ typedef struct {
     Es_Event_Listener_Array* listener_array;                                            /* Array of listeners. */
     char* layer_name;
     Es_Layer_Type layer_type;                                                           /* Type of the layer. */
+    uint8_t propagation_to_next_layer;                                                  /* Boolean that tells if the events needs to be propagated down to the next layer. */
 } Es_Layer;
 
 typedef struct {
@@ -130,8 +134,10 @@ typedef struct {
 
 typedef struct {
 	char* window_title;
-	Es_Layer_Stack* layer_stack;
 	GLFWwindow* main_window;
+	Es_Layer_Stack* layer_stack;
+    Es_Event_Bus* event_bus;
+    Es_Event_Listener_Array* global_event_listeners;
 	Es_Time time;
     uint16_t width, height;
 } Es_Application;
@@ -209,7 +215,7 @@ void        es_event_listener_array_add(Es_Event_Listener_Array* array, Es_Event
 void        es_event_listener_array_clear(Es_Event_Listener_Array* array);                              /* Removes all the events from a listener array. */
 
 /* Process */
-void        es_event_process(Es_Event_Bus* bus, Es_Event_Listener_Array* listener_array);               /* Processes one event from the bus and calls the right listener from the listener list. */
+void        es_event_process(Es_Application* application);                                              /* Processes one event from the bus and calls the right listener from the listener list. */
 
 int         es_get_keyboard_down(char keycode);                                                         /* TESTING ONLY !!!!! Returns if the key associated with the keycode has been pressed. */
 int         es_get_window_close();
@@ -222,10 +228,12 @@ void        es_event_listener_array_destroy(Es_Event_Listener_Array* listener_ar
 
 /* ---------- ES_LAYERS ---------- */
 
-Es_Layer*           es_layer_create(Es_Layer_Type type, char* layer_name);                                            /* Creates and returns a layer of the specified type. */
+Es_Layer*           es_layer_create(Es_Layer_Type type, char* layer_name, uint8_t propagation);     /* Creates and returns a layer of the specified type. */
 
 Es_Layer_Stack*     es_layer_stack_create();                                                        /* Creates and returns a layer stack. */
-void                es_layer_stack_push(Es_Layer_Stack* stack, Es_Layer* layer);                 /* Adds a layer to the stack, and placing it regarding its type.*/
+void                es_layer_stack_push(Es_Layer_Stack* stack, Es_Layer* layer);                    /* Adds a layer to the stack, and placing it regarding its type.*/
+void                es_layer_stack_print(Es_Layer_Stack* stack);                                    /* Displays the names of the layer in the stack. */
+
 
 void                es_layer_destroy(Es_Layer* layer);                                              /* Destroys a layer. */
 void                es_layer_stack_destroy(Es_Layer_Stack* stack);                                  /* Destroys a layer stack. */

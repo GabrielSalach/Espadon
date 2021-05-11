@@ -32,7 +32,9 @@ Es_Application* es_application_create(char* path_to_ini) {
 	rtrn_application->time.time.tv_sec = 0;
 
 	rtrn_application->main_window = NULL;
+
 	rtrn_application->layer_stack = es_layer_stack_create();
+	rtrn_application->global_event_listeners = es_event_listener_array_create();
 
 	pe_file_destroy(settings_file);
 	return rtrn_application;
@@ -49,6 +51,7 @@ int es_init(Es_Application* application) {
 		return -1;
 	}
 	glfwMakeContextCurrent(application->main_window);
+	/* Add listeners to the global listener array and create default layers */
 	return 0;
 }
 

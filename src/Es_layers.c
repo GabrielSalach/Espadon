@@ -1,6 +1,6 @@
 #include "../Espadon.h"
 
-Es_Layer* es_layer_create(Es_Layer_Type type, char* layer_name) {
+Es_Layer* es_layer_create(Es_Layer_Type type, char* layer_name, uint8_t propagation) {
 	Es_Layer* rtrn_layer;
 	rtrn_layer = malloc(sizeof *rtrn_layer);
 
@@ -8,6 +8,7 @@ Es_Layer* es_layer_create(Es_Layer_Type type, char* layer_name) {
 	rtrn_layer->layer_name = malloc(strlen(layer_name) * sizeof *(rtrn_layer->layer_name));
 	strcpy(rtrn_layer->layer_name, layer_name);
 	rtrn_layer->listener_array = es_event_listener_array_create();
+	rtrn_layer->propagation_to_next_layer = propagation;
 
 	return rtrn_layer;
 }
@@ -76,4 +77,17 @@ void es_layer_stack_push(Es_Layer_Stack* stack, Es_Layer* layer) {
 	}
 	
 	stack->layer_count_total++;
+}
+
+void es_layer_stack_print(Es_Layer_Stack* stack) {
+	int i;
+	
+	if(stack->layer_count_total == 0) {
+		ES_WARNING("There isn't any layers in the stack.");
+	} else {
+		ES_LOG("Layers in the stack : \n");
+		for(i = 0; i < stack->layer_count_total; i++) {
+			fprintf(stdout, "	%s\n", stack->array[i]->layer_name);
+		}
+	}
 }
