@@ -96,7 +96,8 @@ void es_event_process(Es_Application* application) {
     Es_Event_Type type;
     Es_Event_Listener_Array* current_listener_array;
     char message[64];
-    int i;
+    int i, j;
+    uint8_t has_been_propagated;
 
     for(i = 0; i < 64; i++) 
         message[i] = 0;
@@ -104,31 +105,45 @@ void es_event_process(Es_Application* application) {
     if(application->event_bus->event_count == 0) {
         ES_LOG("There isn't any event to process.\n");
     } else {
-        /* if(listener_array->listener_count == 0) {
-            ES_LOG("There isn't any listeners available.\n");
-        } else {
-            type = bus->bus[0]->type;
-            for(i = 0; i < listener_array->listener_count; i++) {
-                if(type == listener_array->array[i]->type) {
-                    listener_array->array[i]->event = bus->bus[0];
-                }
-            }
-            bus->event_count--;
-            for(i = 0; i < bus->event_count; i++) {
-                bus->bus[i] = bus->bus[i+1];
-            }
-        } */
-        for(i = application->layer_stack->layer_count_total - 1; i >= 0; i--) {
-            current_listener_array = application->layer_stack->array[i]->listener_array;
-            if(current_listener_array->listener_count == 0) {
-                sprintf(message, "The layer '%s' doesn't have any listeners", application->layer_stack->array[i]->layer_name);
-                ES_LOG(message);
-                for(i = 0; i < 64; i++) 
-                    message[i] = 0;
-            } else {
-                
+        /* Propagating to the global event listeners */
+        current_listener_array = application->global_event_listeners;
+        if(current_listener_array->listener_count != 0) {
+            type = application->event_bus->bus[0]->type;
+            for(i = 0; i < current_listener_array->listener_count; i++) {
+                if(type == current_listener_array->array[i]->type)
+                    current_listener_array->array[i]->event = application->event_bus->bus[0];
             }
         }
+
+        /* Propagating the event through all the layers */
+        has_been_propagated = 0;
+        for(i = application->layer_stack->layer_count_total - 1; i >= 0; i--) {
+            if(has_been_propagated == 0 ) {
+                current_listener_array = application->layer_stack->array[i]->listener_array;
+                if(current_listener_array->listener_count == 0) {
+                    sprintf(message, "The layer '%s' doesn't have any listeners", application->layer_stack->array[i]->layer_name);
+                    ES_LOG(message);
+                    for(i = 0; i < 64; i++) 
+                        message[i] = 0;
+                } else {
+                    if(current_listener_array->listener_count != 0) {
+                        type = application->event_bus->bus[0]->type;
+                        for(j = 0; j < current_listener_array->listener_count; j++) {
+                            if(type == current_listener_array->array[i]->type) {
+                                current_listener_array->array[i]->event = application->event_bus->bus[0];
+                                has_been_propagated = !application->layer_stack->array[i]->propagation_to_next_layer;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        /* Removing 1 event from the bus */
+        application->event_bus->event_count--;
+        for(i = 0; i < application->event_bus->event_count; i++) {
+            application->event_bus->bus[i] = application->event_bus->bus[i+1];
+        }
+        
     }
 }
 

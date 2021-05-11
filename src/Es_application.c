@@ -1,5 +1,9 @@
 #include "../Espadon.h"
 
+void es_event_processing(Es_Application* application);
+
+/* Maybe move time related stuff in a different file later */
+
 timespec es_time_diff(timespec start, timespec end)
 {
     timespec temp;
@@ -11,6 +15,10 @@ timespec es_time_diff(timespec start, timespec end)
         temp.tv_nsec = end.tv_nsec-start.tv_nsec;
     }
     return temp;
+}
+
+double es_delta_time(Es_Application* application) {
+    return (double) application->time.delta_time.tv_sec + (double) application->time.delta_time.tv_nsec / ES_NANOSEC;
 }
 
 Es_Application* es_application_create(char* path_to_ini) {
@@ -83,8 +91,4 @@ void es_exit(Es_Application* application) {
 	free(application->main_window);
 	application->main_window = NULL;
 	free(application);
-}
-
-double es_delta_time(Es_Application* application) {
-    return (double) application->time.delta_time.tv_sec + (double) application->time.delta_time.tv_nsec / ES_NANOSEC;
 }
